@@ -1,0 +1,406 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "900948b1-314c-4d5c-811b-54fd46872398",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://deepmind.google/blog/feed/basic/",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "714c6418-f599-40fc-9fb7-b0fb06d2a486",
+      "name": "RSS Read"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a6bac351-ae97-400a-b6b0-d091932588a2",
+              "name": "=title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "bb28ad51-0760-46ff-9857-8fbb150cb338",
+              "name": "link",
+              "value": "={{ $json.link }}",
+              "type": "string"
+            },
+            {
+              "id": "e0a7c284-75d2-4830-80b5-e47a81cc362a",
+              "name": "pubDate",
+              "value": "={{ $json.pubDate }}",
+              "type": "string"
+            },
+            {
+              "id": "d722fed2-b41d-48ab-868e-c9ea17d82c8c",
+              "name": "content",
+              "value": "={{ $json.content || $json.contentSnippet }}",
+              "type": "string"
+            },
+            {
+              "id": "bca6f830-d516-4ab5-b2f9-e0e68b81886a",
+              "name": "contentSnippet",
+              "value": "={{ $json.contentSnippet }}",
+              "type": "string"
+            },
+            {
+              "id": "fe708c46-1e84-4340-83f2-e24949e625a1",
+              "name": "guid",
+              "value": "={{ $json.guid }}",
+              "type": "string"
+            },
+            {
+              "id": "0b7463d3-8f85-43e1-8a68-3deb828f7d4a",
+              "name": "isoDate",
+              "value": "={{ $json.isoDate }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        672,
+        0
+      ],
+      "id": "87f38870-c79c-4a04-b835-cc1362189f11",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.link }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        848,
+        0
+      ],
+      "id": "e6fe64c4-f57c-4283-a8a5-e97799ed7e53",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "article",
+              "cssSelector": "article"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        1248,
+        0
+      ],
+      "id": "4f44e39a-2e87-41e3-aaf2-159fe978e879",
+      "name": "HTML"
+    },
+    {
+      "parameters": {
+        "maxItems": 10
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        448,
+        0
+      ],
+      "id": "f8d58eae-9587-423a-8049-3a113ec18edc",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ae24bcdc-4623-40ae-9c44-1e5d475a281f",
+              "name": "articleText",
+              "value": "={{ $json.article }}",
+              "type": "string"
+            },
+            {
+              "id": "30ae0b30-b5dd-4f3b-9fc0-e3e6cf4a4c00",
+              "name": "title",
+              "value": "={{ $('Edit Fields').item.json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "7e95d503-8204-4a0d-9aa1-8eeb34d72f5f",
+              "name": "sourceUrl",
+              "value": "={{ $('Edit Fields').item.json.link }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1424,
+        0
+      ],
+      "id": "a8dfa8cf-3d14-48d2-85b4-0bd6bad4f65f",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=أنت محرر أخبار وتقنية.\n\nلديك مجموعة من المقالات. اقرأ جميع المقالات واختر أفضل 3 مقالات فقط.\n\nمعايير الاختيار:\n1. اختر المقالات الأكثر أهمية وفائدة للقارئ.\n2. أعطِ الأولوية للموضوعات الجديدة والمهمة والتي لديها قيمة إخبارية عالية.\n3. لا تختر أكثر من 3 مقالات.\n4. لا تختر نفس المقال مرتين.\n5. لا تختر مقالاً لمجرد أن عنوانه جذاب.\n6. استخدم فقط المعلومات الموجودة في المقالات، ولا تخترع أي معلومات.\n\nلكل مقال مختار، اكتب بالعربية بهذا الشكل:\n\nالعنوان:\n[العنوان بالعربية]\n\nأهم النقاط:\n• نقطة 1\n• نقطة 2\n• نقطة 3\n\nالمصدر:\n[رابط المقال]\n\nالمقالات:\n\n{{ JSON.stringify($json) }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "="
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        1792,
+        0
+      ],
+      "id": "c7d1c814-f75c-4109-968c-c8f460371ec7",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        1504,
+        208
+      ],
+      "id": "9ad7e87f-b83c-434f-97f0-d59de5885a04",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "SmrGLkmMXRcsZ5nh",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "articleText"
+            },
+            {
+              "fieldToAggregate": "title"
+            },
+            {
+              "fieldToAggregate": "sourceUrl"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1568,
+        0
+      ],
+      "id": "196bb55d-16cf-40e5-97d1-77fb266e49de",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "chatId": "8998861935",
+        "text": "={{ $json.text }}",
+        "replyMarkup": "forceReply",
+        "forceReply": {},
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2256,
+        0
+      ],
+      "id": "e47332fa-7ef1-4eda-bbe7-cc436c2ec46c",
+      "name": "Send a text message",
+      "webhookId": "2e142e3d-09b2-4941-9979-99cb0a6f5007",
+      "credentials": {
+        "telegramApi": {
+          "id": "CJCZEZwampzablVP",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "RSS Read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Read": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "3b94d9ef-cb61-4657-b9e2-00f7e1fa7dab",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e1675b3a0551a681ba03b3c4664439c419974a7aa87ed976c386a7a3b7670753"
+  },
+  "nodeGroups": [],
+  "id": "Nqm4QwtYFfygSJBk",
+  "tags": []
+}
